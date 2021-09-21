@@ -15,7 +15,7 @@ export const generateToken = (user) => {
   );
 };
 
-// Voy a crear un middelware para autenticar al usuario
+// Voy a crear un middelware para autenticar al usuario, Segundo parametro de jws
 export const isAuth = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (authorization) {
@@ -31,8 +31,17 @@ export const isAuth = (req, res, next) => {
           next();
         }
       }
-    ); // Segundo parametro de jws
+    );
   } else {
     res.status(401).send({ message: 'No Token' });
+  }
+};
+
+// Necesito otro middelware, para autenticar usuarios admin
+export const isAdmin = (req, res, next) => {
+  if (req.user && req.user.isAdmin) {
+    next();
+  } else {
+    res.status(401).send({ message: 'Invalid Admin Token' });
   }
 };

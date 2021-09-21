@@ -3,7 +3,7 @@ import expressAsyncHandler from 'express-async-handler';
 import bcrypt from 'bcryptjs';
 import data from '../data.js';
 import User from '../models/userModel.js';
-import { generateToken } from '../utils.js';
+import { generateToken, isAuth } from '../utils.js';
 
 const userRouter = express.Router();
 
@@ -23,7 +23,7 @@ userRouter.post(
     if (user) {
       if (bcrypt.compareSync(req.body.password, user.password)) {
         res.send({
-          id: user.id,
+          _id: user._id,
           name: user.name,
           email: user.email,
           isAdmin: user.isAdmin,
@@ -47,12 +47,51 @@ userRouter.post(
     });
     const createdUser = await user.save();
     res.send({
-      id: createdUser.id,
+      _id: createdUser._id,
       name: createdUser.name,
       email: createdUser.email,
       isAdmin: createdUser.isAdmin,
       token: generateToken(createdUser),
     });
+  })
+);
+
+userRouter.get(
+  '/:id',
+  expressAsyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id);
+    if (user) {
+      res.send(user);
+    } else {
+      res.status(404).send({ message: 'User Not Found' });
+    }
+  })
+);
+
+// solo usuarios autenticados tienen acceso a el
+userRouter.put(
+  '/profile',
+  isAuth,
+  expressAsyncHandler(async (req, res) => {
+    // quiero obtener el usuario de la base de datos
+    const user = await User.findById(req.user._id);
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+      if (req.body.password) {
+        user.password = bcrypt.hashSync(req.body.password, 8);
+      }
+      // el siguente paso es salvar la actualización
+      const updatedUser = await user.save();
+      // despues de salvar el usuario es tiempo de mandarlo al frontend
+      res.send({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        isAdmin: updatedUser.isAdmin,
+        token: generateToken(updatedUser),
+      });
+    }
   })
 );
 
