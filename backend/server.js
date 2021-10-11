@@ -51,6 +51,10 @@ app.use((err, req, res, next) => {
 // const port = 5000;
 const port = process.env.PORT || 5000;
 
+app.listen(port, () => {
+  console.log(`Serve at http://localhost:${port}`);
+});
+
 // const httpServer = http.Server(app);
 // const io = new Server(httpServer, { cors: { origin: '*' } });
 // const users = [];
@@ -126,7 +130,3 @@ const port = process.env.PORT || 5000;
 // httpServer.listen(port, () => {
 //   console.log(`Serve at http://localhost:${port}`);
 // });
-
-app.listen(port, () => {
-  console.log(`Serve at http://localhost:${port}`);
-});
